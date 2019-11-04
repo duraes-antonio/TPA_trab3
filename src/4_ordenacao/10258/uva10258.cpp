@@ -3,7 +3,6 @@
  */
 #include <iostream>
 #include <algorithm>
-#include <vector>
 #include <sstream>
 
 #define INV_PENALIDADE 20
@@ -13,23 +12,20 @@
 
 using namespace std;
 
-struct problema {
-    int id;
+typedef struct problema {
     int minutos;
     char status;
     bool resolvido;
-};
-typedef struct problema t_prob;
+} t_prob;
 
-struct usuario_problema {
-    int id_usuario = -1;
+typedef struct usuario_problema {
+    int id = -1;
     int n_prob_res = 0;
     int n_minutos = 0;
     bool participa = false;
 
     t_prob probs[N_PROBLEMAS]{};
-};
-typedef struct usuario_problema t_usu_prob;
+} t_usu_prob ;
 
 bool cmpUsuarioProblemas(usuario_problema u1, usuario_problema u2) {
 
@@ -42,20 +38,17 @@ bool cmpUsuarioProblemas(usuario_problema u1, usuario_problema u2) {
     if (u1.n_minutos != u2.n_minutos)
         return u1.n_minutos < u2.n_minutos;
 
-    return (u1.id_usuario < u2.id_usuario);
+    return (u1.id < u2.id);
 }
 
 int main() {
 
-    int n_testes;
-    vector<t_usu_prob> u_probs;
+    int n_testes, id_usu, id_prob;
+
+    t_usu_prob u_probs[N_USUARIOS];
     string limbo;
 
-    int id_usu;
     t_prob prob;
-    t_usu_prob usuario;
-
-    u_probs.reserve(100);
 
     /*Leia o número de testes*/
     cin >> n_testes;
@@ -64,41 +57,38 @@ int main() {
 
     while (n_testes--) {
 
-        u_probs.clear();
-
         for (int i = 0; i < N_USUARIOS; ++i) {
-            usuario.id_usuario = i + 1;
-            u_probs.push_back(usuario);
+            t_usu_prob temp_usuario;
+            temp_usuario.id = i + 1;
+            u_probs[i] = temp_usuario;
         }
 
-        while (getline(cin, limbo), limbo.size() > 0) {
+        while (getline(cin, limbo), !limbo.empty()) {
             stringstream stream_linha(limbo);
-            stream_linha >> id_usu >> prob.id >> prob.minutos >> prob.status;
+            stream_linha >> id_usu >> id_prob >> prob.minutos >> prob.status;
 
-            if (!u_probs[id_usu - 1].probs[prob.id - 1].resolvido) {
-
+            if (!u_probs[id_usu - 1].probs[id_prob - 1].resolvido) {
                 u_probs[id_usu - 1].participa = true;
 
                 if (prob.status == 'I') {
-                    u_probs[id_usu - 1].probs[prob.id - 1].minutos += INV_PENALIDADE;
+                    u_probs[id_usu - 1].probs[id_prob - 1].minutos += INV_PENALIDADE;
                 }
 
                 else if (prob.status == 'C') {
-                    u_probs[id_usu - 1].probs[prob.id - 1].minutos += prob.minutos;
-                    u_probs[id_usu - 1].probs[prob.id - 1].resolvido = true;
+                    u_probs[id_usu - 1].probs[id_prob - 1].minutos += prob.minutos;
+                    u_probs[id_usu - 1].probs[id_prob - 1].resolvido = true;
                     ++u_probs[id_usu - 1].n_prob_res;
-                    u_probs[id_usu - 1].n_minutos += u_probs[id_usu - 1].probs[prob.id - 1].minutos;
+                    u_probs[id_usu - 1].n_minutos += u_probs[id_usu - 1].probs[id_prob - 1].minutos;
                 }
             }
         }
 
-        sort(u_probs.begin(), u_probs.end(), cmpUsuarioProblemas);
+        sort(u_probs, u_probs + N_USUARIOS, cmpUsuarioProblemas);
 
         for (int i = 0; i < N_USUARIOS; ++i) {
-            usuario = u_probs[i];
 
-            if (usuario.participa) {
-                printf("%d %d %d\n", usuario.id_usuario, usuario.n_prob_res, usuario.n_minutos);
+            if (u_probs[i].participa) {
+                printf("%d %d %d\n", u_probs[i].id, u_probs[i].n_prob_res, u_probs[i].n_minutos);
             }
 
             else break;
