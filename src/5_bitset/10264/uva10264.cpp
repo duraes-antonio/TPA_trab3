@@ -1,80 +1,53 @@
-/* Problema #11926 - Multitasking
- * Autor: Antônio Carlos Durães da Silva
+/* Problema #10264 - The Most Potent Corner uva
+ * Autor: Lucas Gomes Flegler
  */
-#include <iostream>
-#include <bitset>
 
-#define MAX_INT 1000001
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
 
 using namespace std;
 
-int main() {
+int N;
+int vet[20000];
+int sum[20000];
 
-    int n, m, i, k;
-    bool conflitou;
-    int t_ini, t_fim, t_interv;
-    bitset<MAX_INT> min_ocups;
+int main()
+{
+    while (cin>>N)
+    {
+        // Deslocamento para a esquerda mudando os bits do primeiro operando, 
+        // o segundo operando decide o número de locais a serem deslocados.
+        int potencia = 1 << N;
+        int max_sum = 0;
+        for (int i = 0; i < potencia; i++)
+        {
+            scanf("%d", &vet[i]);
+        }
 
-    // Enquanto houver tarefas a serem lidas (únicas ou cíclicas)
-    while (cin >> n >> m and (n > 0 or m > 0)) {
+        // Calculando e somando as potencias.
+        for (int i = 0; i < potencia; i++)
+        {
+            int sum_potencia = 0;
+            for (int j = 0; j < N; j++)
+            {
+                int aux = i ^ (1 << j);
+                sum_potencia += vet[aux];
+            }
+            sum[i] = sum_potencia;
+        }
 
-        conflitou = false;
-
-        // Leia as tarefas executadas apenas uma vez
-        for (i = 0; !conflitou and i < n; ++i) {
-            cin >> t_ini >> t_fim;
-
-            /* Há conflito se o início da tarefa atual colidir com a execução
-             * de outra tarefa. Se o início da tarefa atual colidir com o minuto
-             * de TÉRMINO de outra tarefa NÃO há conflito.*/
-
-            /* Enquanto não houver conflito, tente marcar os minutos da
-             * tarefa atual como ocupados */
-            while (t_ini < t_fim) {
-
-                // Se o minuto atual estiver ocupado, as tarefas conflitaram
-                if(min_ocups[t_ini]) {
-                    conflitou = true;
-                    break;
-                }
-
-                else min_ocups.set(t_ini++);
+        // Realizando pesquisa completa pela soma máxima de potências dos dois cantos vizinhos
+        for (int i = 0; i < potencia; i++)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                int aux = i ^ (1 << j);
+                max_sum = max(max_sum, sum[i] + sum[aux]);
             }
         }
 
-        // Se conflitou, leia os dados restantes para evitar problema de entrada
-        for (; i < n; ++i) cin >> t_ini >> t_fim;
-
-        // Leia as tarefas cíclicas, executadas a cada x intervalo
-        for (i = 0; i < m and !conflitou; ++i) {
-            cin >> t_ini >> t_fim >> t_interv;
-
-            /* Para cada execução de cada tarefa repetitiva*/
-            for (int j = 0; !conflitou and (t_ini + j) < MAX_INT; j += t_interv) {
-
-                /* Marque todos os minutos do início dessa execução dessa
-                 * tarefa até o último minuto da execução */
-                k = t_ini + j;
-
-                while (k < (t_fim + j) and k < MAX_INT) {
-
-                    // Se o minuto atual estiver ocupado, tarefas conflitaram
-                    if (min_ocups[k]) {
-                        conflitou = true;
-                        break;
-                    }
-
-                    else min_ocups.set(k++);
-                }
-            }
-        }
-
-        // Se conflitou, leia os dados restantes para evitar problema de entrada
-        for (; i < m; ++i) cin >> t_ini >> t_fim >> t_interv;
-
-        cout << (conflitou ? "CONFLICT\n" : "NO CONFLICT\n");
-        min_ocups.reset();
+        printf("%d\n", max_sum);
     }
-
-    return 0;
 }
