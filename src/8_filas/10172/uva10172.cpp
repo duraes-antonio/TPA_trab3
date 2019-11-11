@@ -16,8 +16,8 @@ int main()
     for (; casos > 0; casos--)
     {
         // pilha e fila da transportadora e da estacao.
-        stack<int> transportadora;
         queue<int> filaEstacao[100];
+        stack<int> transportadora;
 
         cin >> n >> s >> q;
 
@@ -64,8 +64,7 @@ int main()
             }
             if (clear)
                 break;
-
-            //move @ 2 min
+            
             pos = (pos + 1) % n;
             tempo += 2;
         }
