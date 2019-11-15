@@ -1,5 +1,8 @@
 /* Problema #10038 - Jolly Jumpers
- * Autor: Antônio Carlos Durães da Silva
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
  */
 #include <vector>
 #include <iostream>
@@ -16,7 +19,6 @@ int main() {
     bool jolly;
     int n, num_anterior, num_atual, dif;
 
-    /*OTIM: Reserve o máximo de elementos possível*/
     diferencas.reserve(MAX_N);
 
     while(cin >> n && n > 0) {
@@ -34,12 +36,9 @@ int main() {
         }
 
         /*Na primeira diferença ausente, imprima que não é Jolly*/
-        for (int i = 1; i < n and jolly; ++i) {
-            jolly = diferencas[i];
-        }
+        for (int i = 1; i < n and jolly; ++i) jolly = diferencas[i];
 
-        if (jolly) cout << JOL << endl;
-        else cout << NJOL << endl;
+        cout << (jolly) ? JOL : NJOL << endl;
     }
 
     return 0;

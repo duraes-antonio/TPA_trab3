@@ -1,3 +1,9 @@
+/* Problema #10901 - Ferry Loading III
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
+ */
 #include <iostream>
 #include <string>
 #include <queue>

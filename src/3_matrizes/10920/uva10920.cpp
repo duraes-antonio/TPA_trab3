@@ -1,5 +1,8 @@
 /* Problema #10920 - Spiral tap
- * Autor: Lucas Gomes Flegler
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
  */
 
 #include <cmath>

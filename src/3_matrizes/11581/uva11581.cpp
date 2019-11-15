@@ -1,5 +1,8 @@
 /* Problema #11581 - Grid successors
- * Autor: Lucas Gomes Flegler
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
  */
 
 #include <cstdio>

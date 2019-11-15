@@ -1,7 +1,9 @@
 /* Problema #10264 - The Most Potent Corner uva
- * Autor: Lucas Gomes Flegler
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
  */
-
 #include <iostream>
 #include <algorithm>
 #include <cmath>

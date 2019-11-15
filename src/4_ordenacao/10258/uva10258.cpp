@@ -1,5 +1,8 @@
 /* Problema #10258 - Contest Scoreboard?
- * Autor: Antônio Carlos Durães da Silva
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
  */
 #include <iostream>
 #include <algorithm>

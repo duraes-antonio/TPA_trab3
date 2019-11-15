@@ -1,5 +1,8 @@
 /* Problema #10172 - The Lonesome Cargo Distributor
- * Autor: Lucas Gomes Flegler
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
  */
 
 #include <iostream>

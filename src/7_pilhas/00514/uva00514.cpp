@@ -1,5 +1,8 @@
 /* Problema #00514 – Rails
- * Autor: Antônio Carlos Durães da Silva
+ * Autores:
+ *  Antônio Carlos Durães da Silva
+ *  Carlos Guilherme Felismino Pedroni
+ *  Lucas Gomes Fleger
  */
 #include <iostream>
 #include <stack>
@@ -9,10 +12,9 @@ using namespace std;
 int main() {
 
     stack<int> pilha_carros;
-    int n_carros, carro;
+    int n_carros, carro, cont_carro;
     bool linha_vazia;
     cin >> n_carros;
-    int cont_carro;
 
     while (n_carros > 0) {
         linha_vazia = false;
@@ -31,7 +33,6 @@ int main() {
                 /*Se houver um próximo bloco a ser lido, separe a saída com uma
                  * linha em branco*/
                 cout << endl;
-
                 linha_vazia = true;
                 break;
             }
@@ -48,7 +49,6 @@ int main() {
          * resultado*/
         if (!linha_vazia) pilha_carros.empty() ? printf("Yes\n") : printf("No\n");
     }
-
 
     return 0;
 }
