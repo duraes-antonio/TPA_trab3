@@ -12,11 +12,10 @@
 #define N_USUARIOS 100
 #define N_PROBLEMAS 10
 
-
 using namespace std;
 
 typedef struct problema {
-    int minutos;
+    int min;
     char status;
     bool resolvido;
 } t_prob;
@@ -24,33 +23,25 @@ typedef struct problema {
 typedef struct usuario_problema {
     int id = -1;
     int n_prob_res = 0;
-    int n_minutos = 0;
+    int n_min = 0;
     bool participa = false;
 
     t_prob probs[N_PROBLEMAS]{};
-} t_usu_prob ;
+} t_usu_prob;
 
-bool cmpUsuarioProblemas(usuario_problema u1, usuario_problema u2) {
-
-    if (u1.participa != u2.participa)
-        return u1.participa > u2.participa;
-
-    if (u1.n_prob_res != u2.n_prob_res)
-        return u1.n_prob_res > u2.n_prob_res;
-
-    if (u1.n_minutos != u2.n_minutos)
-        return u1.n_minutos < u2.n_minutos;
-
+bool cmpUsuarioProblemas(t_usu_prob u1, t_usu_prob u2) {
+    if (u1.participa != u2.participa) return u1.participa > u2.participa;
+    if (u1.n_prob_res != u2.n_prob_res) return u1.n_prob_res > u2.n_prob_res;
+    if (u1.n_min != u2.n_min) return u1.n_min < u2.n_min;
     return (u1.id < u2.id);
 }
 
 int main() {
 
-    int n_testes, id_usu, id_prob;
+    int n_testes, id_u, id_p;
 
     t_usu_prob u_probs[N_USUARIOS];
     string limbo;
-
     t_prob prob;
 
     /*Leia o número de testes*/
@@ -68,33 +59,27 @@ int main() {
 
         while (getline(cin, limbo), !limbo.empty()) {
             stringstream stream_linha(limbo);
-            stream_linha >> id_usu >> id_prob >> prob.minutos >> prob.status;
+            stream_linha >> id_u >> id_p >> prob.min >> prob.status;
 
-            if (!u_probs[id_usu - 1].probs[id_prob - 1].resolvido) {
-                u_probs[id_usu - 1].participa = true;
+            if (!u_probs[id_u - 1].probs[id_p - 1].resolvido) {
+                u_probs[id_u - 1].participa = true;
 
                 if (prob.status == 'I') {
-                    u_probs[id_usu - 1].probs[id_prob - 1].minutos += INV_PENALIDADE;
-                }
-
-                else if (prob.status == 'C') {
-                    u_probs[id_usu - 1].probs[id_prob - 1].minutos += prob.minutos;
-                    u_probs[id_usu - 1].probs[id_prob - 1].resolvido = true;
-                    ++u_probs[id_usu - 1].n_prob_res;
-                    u_probs[id_usu - 1].n_minutos += u_probs[id_usu - 1].probs[id_prob - 1].minutos;
+                    u_probs[id_u - 1].probs[id_p - 1].min += INV_PENALIDADE;
+                } else if (prob.status == 'C') {
+                    u_probs[id_u - 1].probs[id_p - 1].min += prob.min;
+                    u_probs[id_u - 1].probs[id_p - 1].resolvido = true;
+                    ++u_probs[id_u - 1].n_prob_res;
+                    u_probs[id_u - 1].n_min += u_probs[id_u - 1].probs[id_p - 1].min;
                 }
             }
         }
 
         sort(u_probs, u_probs + N_USUARIOS, cmpUsuarioProblemas);
 
-        for (int i = 0; i < N_USUARIOS; ++i) {
-
-            if (u_probs[i].participa) {
-                printf("%d %d %d\n", u_probs[i].id, u_probs[i].n_prob_res, u_probs[i].n_minutos);
-            }
-
-            else break;
+        for (auto &equipe : u_probs) {
+            if (!equipe.participa) break;
+            printf("%d %d %d\n", equipe.id, equipe.n_prob_res, equipe.n_min);
         }
 
         if (n_testes) cout << endl;

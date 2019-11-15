@@ -18,8 +18,7 @@ int main() {
     string linha;
     cin >> n_testes;
 
-    while (--n_testes > -1) {
-        fill(precos, precos + 100, 0);  // Limpe os preços por caractere
+    while (n_testes--) {
         preco_soma = 0;
         cin >> n_preco_char;
 
