@@ -1,0 +1,1027 @@
+\documentclass[a4paper,12pt]{scrartcl}
+
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage[chapter]{minted}
+\usepackage{verbatim}
+\usepackage{hyperref}
+\usepackage{tabto}
+\usepackage{listings}
+\usepackage{xcolor} % for setting colors
+
+% set the default code style
+\lstset { %
+    language=C++,
+    backgroundcolor=\color{black!5}, % set backgroundcolor
+    basicstyle=\footnotesize,% basic font setting
+}
+
+\title{Relatório do Trabalho Problemas sobre Estruturas de Dados Básicas}
+\subtitle{Técnicas de Programação Avançada --- IFES --- Campus Serra}
+\author{
+    \uline{
+        Alunos: Antônio Carlos Durães da Silva,
+        \\Carlos Guilherme Felismino Pedroni,
+        \\Lucas Gomes Fleger}
+  \and Prof. Jefferson O. Andrade}
+\date{16 de novembro de 2019}
+
+\newcommand{\algorithmautorefname}{Algoritmo}
+\renewcommand{\listingscaption}{Código Fonte}
+\renewcommand{\listoflistingscaption}{Lista de Códigos Fonte}
+\providecommand*{\listingautorefname}{Código Fonte}
+
+\begin{document}
+
+
+\maketitle
+\tableofcontents 
+\listoflistings
+\listoffigures
+
+\section{Introdução}
+
+Este documento refere-se na resolução de problemas propostos pelo professor do site UVA, requeridos para o Trabalho Problemas sobre Estruturas de Dados Básicas da disciplina de Técnicas de Programação Avançada.
+
+Tendo em vista a quantidade de código envolvido na solução dos problemas e a limitação gerada com uso do pacote \textbf{minted} ao exibir mais que cinquenta linhas de código, alguns códigos foram reescritos de forma compacta apenas para este relatório, podendo ser encontrados com comentários, formatação e modularização \href{https://github.com/duraes-antonio/TPA_trab3}{nesse repositório} \footnote{\url{https://github.com/duraes-antonio/TPA_trab3}} ou no diretório com os códigos-fontes.
+
+Todos os códigos foram desenvolvidos utilizando a linguagem C++ por ela já conter todas estruturas de dados em bibliotecas nativas, além de ser uma linguagem compilada e rápida, se comparada com outras de conhecimento em comum do grupo.
+
+\section{Implementação do Trabalho}
+
+Este capítulo está divido em pequenas seções, onde o objetivo de cada seção é exibir o código fonte e uma breve introdução de como o problema foi solucionado.
+
+\subsection{Warm up}
+\subsubsection{\#12247 - Jollo}
+A ideia inicial do problema é ordenar as cartas dos dois jogadores para saber as maiores e menores cartas de cada jogador, depois disso é só fazer 3 verificações para descobrir as cartas que tem que ser entregue ao príncipe ou se não é possível ele ganhar, essas três verificações são: Se todas as cartas do príncipe são maiores do que as da princesa, se a maior carta do príncipe é maior que todas as cartas da princesa e se a menor carta do príncipe é maior do que duas cartas da princesa.
+Dentro dessas condições são feitos loops para encontrar a menor carta que satisfaça a condição de verificação, além disso também é verificado se a carta não já está no vetor com todas as cartas, para não ocorrer de ser entregue uma carta que satisfaça a condição, mas seja repetida. Caso o valor inicial de 53 não seja alterado por nenhuma das 3 verificações é retornado que não possui um jogo que o príncipe possa vencer, no caso -1.
+
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <vector>
+#include <algorithm>
+#include <iostream>
+
+using namespace std;
+
+const bool Contem(vector<int> &Vec, const int &Element) {
+    if (find(Vec.begin(), Vec.end(), Element) != Vec.end()) return true;
+    return false;
+}
+
+int main() {
+    vector<int> princesa(3), principe(2), todaEntrada;
+    int a, b, c, x, y, saida;
+
+    while (cin >> a >> b >> c >> x >> y, a) {
+        princesa.clear(); principe.clear();
+        saida = 53;
+
+        princesa.push_back(a);
+        princesa.push_back(b);
+        princesa.push_back(c);
+        principe.push_back(x);
+        principe.push_back(y);
+
+        sort(princesa.begin(), princesa.end());  //ordena os valores
+        sort(principe.begin(), principe.end());  //ordena os valores
+
+        todaEntrada(princesa);
+        todaEntrada.insert(todaEntrada.end(), principe.begin(), principe.end());
+
+        if (principe[0] > princesa[2]) {  //verifica se todas as cartas do principe são maiores do que as da princesa
+            for (int i = 1; i <= 52 && i < saida; ++i)
+                if (!Contem(todaEntrada, i)) saida = i;
+        }
+        if (principe[1] > princesa[2]) { // verifica se a maior carta do principe é maior que todas da princesa
+            for (int i = princesa[2] + 1; i <= 52 && i < saida; ++i)
+                if (!Contem(todaEntrada, i)) saida = i;
+        }
+        if (principe[0] > princesa[1]) { // verifica se o primeiro do principe é maior do que duas cartas da princesa
+            for (int i = princesa[1] + 1; i <= 52 && i < saida; ++i)
+                if (!Contem(todaEntrada, i)) saida = i;
+        }
+        if (saida == 53) saida = -1;
+        cout << saida << '\n';
+    }
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#12247 - Jollo}}
+\end{listing}
+
+\subsection{Vetores}
+\subsubsection{\#10038 - Jolly Jumpers}
+A ideia básica da solução é ter uma lista de valores binários com capacidade de armazenar a quantidade máxima de entradas. O valor absoluto da diferença entre o elemento i e o elemento anterior (índice igual a i - 1) da entrada [linha 20], será usado como índice da lista de booleanos e receberá o valor verdadeiro [linha 21], marcando que essa diferença faz parte da sequência Jolly.
+
+Se a lista de booleanos possuir valores \textbf{true}, da segunda posição até o n - 1, a entrada contém a sequência completa para ser Jolly [linha 25]. Como somente os índices com as diferenças entre um elemento e seu seguinte recebe o valor verdadeiro, se algum número da sequência Jolly estiver ausente na entrada, haverá ao menos algum valor \textbf{false} na lista de booleanos, o que indicará que a sequência não é Jolly.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    vector<bool> diferencas;
+    bool jolly;
+    int n, num_anterior, num_atual, dif;
+
+    diferencas.reserve(3000);
+
+    while(cin >> n && n > 0) {
+        jolly = true;
+        fill(diferencas.begin(), diferencas.begin() + n, false);
+        cin >> num_anterior;
+
+        for (int i = 1; i < n; ++i) {
+            cin >> num_atual;
+            dif = abs(num_anterior - num_atual);
+            if (dif < n) diferencas[dif] = true;
+            num_anterior = num_atual;
+        }
+
+        for (int i = 1; i < n and jolly; ++i) jolly = diferencas[i];
+        cout << (jolly ? "Jolly" : "Not jolly") << endl;
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#10038 - Jolly Jumpers}}
+\end{listing}
+
+\subsubsection{\#11340 - Newspaper}
+A base da solução é montar uma lista com os caracteres e outra com seus respectivos preços. O cálculo do preço do texto de entrada é realizado nas linhas 18 a 29. Na linha 19, a linha de texto de entrada é lida. Para cada caractere do texto lido [linha 21], verifica-se [linha 22 e 23] se o caractere está na tabela de preço criada anteriormente; se estiver, então incrementa-se o preço do artigo com o custo do caractere [linha 24], por fim, o próximo caractere do texto é lido. Como o texto de entrada foi percorrido caractere a caractere, no fim, temos a soma com o custo total.
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    int n_testes, n_preco_char, n_linha, preco_soma, precos[100];
+    char caracteres[100];
+    string linha;
+    cin >> n_testes;
+
+    while (--n_testes > -1) {
+        preco_soma = 0;
+        cin >> n_preco_char;
+
+        for (int i = 0; i < n_preco_char; ++i) cin >> caracteres[i] >> precos[i];
+        cin >> n_linha; cin.ignore();
+
+        for (int i = 0; i < n_linha; ++i) {
+            getline(cin, linha);
+
+            for (const char simb : linha) {
+                for(int j = 0; j < n_preco_char; ++j) {
+                    if (caracteres[j] == simb) {
+                        preco_soma += precos[j];
+                        break;
+                    }
+                }
+            }
+        }
+        printf("%.2lf$\n", preco_soma / 100.0);
+    }
+
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#11340 - Newspaper}}
+\end{listing}
+
+\subsection{Matrizes}
+\subsubsection{\#10920 - Spiral tap}
+Observando que o canto superior direito de cada camada da espiral possui um quadrado de um número ímpar (1, 3, 5, 7,…, n), utilizamos isso como um elemento de posicionamento para descobrir em que anel P está. Para descobrir em que anel estamos, pegamos a raiz quadrada de P e calculamos o próximo valor ímpar acima. Além disso, usamos variáveis do tipo long long, pois os valores de entrada e saída podem ser bastante grandes.
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+using namespace std;
+long long SZ, P, linha, coluna, raiz, i, j;
+int main(){
+    while (true){
+        scanf("%lld %lld", &SZ, &P);
+        if (SZ == 0 && P == 0)
+            break;
+        raiz = sqrt(P);
+        if (raiz * raiz == P && raiz % 2 == 1){}
+        else if (raiz % 2 == 1)
+            raiz += 2;
+        else
+            raiz++;
+        i = raiz / 2, j = raiz / 2;
+        if (raiz * raiz != 1){
+            long grupo = (raiz * raiz - P) / (raiz - 1);
+            switch (grupo){
+            case 0:
+                i -= raiz * raiz - P;
+                break;
+            case 1:
+                i -= raiz - 1;
+                j -= (raiz * raiz - P - (raiz - 1));
+                break;
+            case 2:
+                i -= (raiz - 1) - (raiz * raiz - P - (raiz - 1) * 2);
+                j -= raiz - 1;
+                break;
+            case 3:
+                j -= (raiz - 1) - (raiz * raiz - P - (raiz - 1) * 3);
+                break;
+            }
+        }
+        linha = i + SZ / 2 + 1;
+        coluna = j + SZ / 2 + 1;
+        printf("Line = %lld, column = %lld.\n", linha, coluna);
+    }
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#10920 - Spiral tap}}
+\end{listing}
+\newpage
+\subsubsection{\#11581 - Grid successors}
+Nesta solução, descobrimos que toda grade tende à grade zero em quatro iterações ou menos. Com isso em mente, criamos uma função que verifica se todos os valores da grade são zeros, caso seja verdadeiro, finalizamos e imprimimos o resultado, caso seja falso, criamos uma grade auxiliar que calcula o resto da divisão da soma dos valores adjacentes da grade atual.
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+int g[3][3];
+bool allzeros(){
+    for (int i = 0; i < 3; i++){
+        for (int j = 0; j < 3; j++){
+            if (g[i][j] > 0) return false;
+        }
+    }
+    return true;
+}
+int main(){
+    int TC;
+    scanf("%d", &TC);
+    while (TC--){
+        for (int i = 0; i < 3; i++){
+            for (int j = 0; j < 3; j++){
+                scanf("%1d", &g[i][j]);
+            }
+        }
+        int resposta = -1;
+        while (!allzeros()){
+            int matAux[3][3];  
+            matAux[0][0] = (g[0][1] + g[1][0]) % 2;
+            matAux[0][1] = (g[0][0] + g[1][1] + g[0][2]) % 2;
+            matAux[0][2] = (g[0][1] + g[1][2]) % 2;
+            matAux[1][0] = (g[0][0] + g[1][1] + g[2][0]) % 2;
+            matAux[1][1] = (g[0][1] + g[1][0] + g[1][2] + g[2][1]) % 2;
+            matAux[1][2] = (g[1][1] + g[0][2] + g[2][2]) % 2;
+            matAux[2][0] = (g[2][1] + g[1][0]) % 2;
+            matAux[2][1] = (g[2][0] + g[1][1] + g[2][2]) % 2;
+            matAux[2][2] = (g[2][1] + g[1][2]) % 2;
+            for (int i = 0; i < 3; i++){
+                for (int j = 0; j < 3; j++){
+                    g[i][j] = matAux[i][j];
+                }
+            }
+            resposta++;
+        }
+        printf("%d\n", resposta);
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#11581 - Grid successors}}
+\end{listing}
+
+\subsection{Ordenação}
+\subsubsection{\#10107 - What is the Median?}
+Este é um problema simples de ordenação, para solucioná-lo bastou-se ler os números de entrada e armazená-los em uma lista de inteiros [linha 11], ordenar a lista de entrada crescentemente e calcular o valor do índice que divide a lista ao meio.
+
+Se o índice (começa em zero) for par, a lista possui uma quantidade ímpar de elementos, basta imprimir o elemento central [linha 16]. Senão, a quantidade de elementos é par, então calcula-se a média dos dois elementos centrais da lista [linha 17].
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <algorithm>
+
+#define MAX_N 10000
+
+using namespace std;
+
+int main() {
+    int meio, n, entrada[MAX_N];
+    int i = -1;
+
+    while (cin >> entrada[++i]) {
+        sort(entrada, entrada + i + 1);
+        meio = i / 2;
+
+        if (i % 2 == 0) cout << entrada[meio];
+        else cout << (entrada[meio] + entrada[meio+1])/2;
+        cout << endl;
+    }
+
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#10107 - What is the Median?}}
+\end{listing}
+
+\newpage
+\subsubsection{\#10258 - Contest Scoreboard?}
+Além de funções e estruturas nativas da linguagem, o grupo implementou algumas e um comparador para decidir a prioridade entre dois objetos personalizados.
+
+Foi criada uma estrutura para representar cada questão que as equipes do problema solucionarão [linha 9 - 11], nela há a duração para resolver a questão (em minutos), o status do problema (I: Incorreto, C: Correto, etc) e uma flag para indicar se o problema já foi resolvido corretamente.
+
+Além disso, há uma estrutura para as equipes do problema [linha 13 - 17], a representação contém o id da equipe, o número de problemas resolvidos, o total de minutos gastos, uma flag que diz se a equipe submeteu uma solução, e uma lista de problemas que a equipe tentou resolver.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <algorithm>
+#include <sstream>
+#define INV_PENALIDADE 20
+#define N_USUARIOS 100
+
+using namespace std;
+
+typedef struct problema {
+    int min; char status; bool resolvido;
+} t_prob;
+
+typedef struct usuario_problema {
+    int id = -1; int n_prob_res = 0; int n_min = 0;
+    bool participa = false;
+    t_prob probs[10]{};
+} t_usu_prob;
+
+bool cmpUsuarioProblemas(t_usu_prob u1, t_usu_prob u2) {
+    if (u1.participa != u2.participa) return u1.participa > u2.participa;
+    if (u1.n_prob_res != u2.n_prob_res) return u1.n_prob_res > u2.n_prob_res;
+    if (u1.n_min != u2.n_min) return u1.n_min < u2.n_min;
+    return (u1.id < u2.id);
+}
+\end{minted}
+\caption{\footnotesize{Estruturas customizadas e Comparador \#10258 - Contest Scoreboard?}}
+\end{listing}
+Na função principal, após ler uma linha com os dados, se a equipe ainda não resolveu corretamente a questão [linha 19], marca-se que a equipe está participando, e então analisamos o status da solução. Se for uma solução incorreta, aplica-se a penalidade de 20 minutos ao tempo da questão da equipe [linha 21 - 22], senão, se a resposta está correta [linha 23], então devemos somar o tempo da solução ao que já havia [linha 25], marcar a questão como resolvida [linha 26], incrementar o número de questões resolvidas [linha 27] e incrementar o tempo total gasto pela equipe com todas [linha 28].
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+
+int main() {
+    int n_testes, id_u, id_p;
+    t_usu_prob u_probs[N_USUARIOS];
+    string limbo;
+    t_prob prob;
+    
+    cin >> n_testes;
+    getline(cin, limbo); getline(cin, limbo);
+
+    while (n_testes--) {
+        for (int i = 0; i < N_USUARIOS; ++i) {
+            t_usu_prob temp_usuario;
+            temp_usuario.id = i + 1;
+            u_probs[i] = temp_usuario;
+        }
+        while (getline(cin, limbo), !limbo.empty()) {
+            stringstream stream_linha(limbo);
+            stream_linha >> id_u >> id_p >> prob.min >> prob.status;
+
+            if (!u_probs[id_u - 1].probs[id_p - 1].resolvido) {
+                u_probs[id_u - 1].participa = true;
+                if (prob.status == 'I') {
+                    u_probs[id_u - 1].probs[id_p - 1].min += INV_PENALIDADE;
+                } else if (prob.status == 'C') {
+                    u_probs[id_u - 1].probs[id_p - 1].min += prob.min;
+                    u_probs[id_u - 1].probs[id_p - 1].resolvido = true;
+                    ++u_probs[id_u - 1].n_prob_res;
+                    u_probs[id_u - 1].n_min += u_probs[id_u - 1].probs[id_p - 1].min;
+                }
+            }
+        }
+        sort(u_probs, u_probs + N_USUARIOS, cmpUsuarioProblemas);
+        
+        for (auto &equipe : u_probs) {
+            if (!equipe.participa) break;
+            printf("%d %d %d\n", equipe.id, equipe.n_prob_res, equipe.n_min);
+        }
+        if (n_testes) cout << endl;
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Função principal \#10258 - Contest Scoreboard?}}
+\end{listing}
+
+\subsection{Manipulação de bits}
+\subsubsection{\#10264 – The Most Potent Corner}
+A potência de um canto é a soma dos pesos dos cantos vizinhos. Dois cantos são vizinhos se estiverem conectados por uma borda do cubo. Isso significa que eles diferem exatamente em uma coordenada. Para verificar isso, podemos representar as coordenadas como números inteiros (por exemplo, (1, 0, 1) tornam-se 5). Uma vez registrado a soma de cada canto, nós percorremos mais uma vez para encontrar os dois cantos adjacentes com a soma máxima. 
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+
+using namespace std;
+
+int N;
+int vet[20000];
+int sum[20000];
+int main(){
+    while (cin>>N){
+        int potencia = 1 << N;
+        int max_sum = 0;
+        for (int i = 0; i < potencia; i++){
+            scanf("%d", &vet[i]);
+        }
+        for (int i = 0; i < potencia; i++){
+            int sum_potencia = 0;
+            for (int j = 0; j < N; j++){
+                int aux = i ^ (1 << j);
+                sum_potencia += vet[aux];
+            }
+            sum[i] = sum_potencia;
+        }
+        for (int i = 0; i < potencia; i++){
+            for (int j = 0; j < N; j++){
+                int aux = i ^ (1 << j);
+                max_sum = max(max_sum, sum[i] + sum[aux]);
+            }
+        }
+        printf("%d\n", max_sum);
+    }
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#10264 – The Most Potent Corner}}
+\end{listing}
+
+\subsubsection{\#11926 – Multitasking}
+A ideia da solução é ter uma sequência de bits que representam o tempo total (em minutos) para executar as tarefas. Se um bit de índice i da sequência estiver ativo (\textbf{True}), indica que o i-ésimo minuto está ocupado com uma tarefa, as verificações são interrompidas e um laço apenas para ler e consumir a entrada é usado.
+
+As linhas 11 a 18 tratam tarefas não-cíclicas, já as linhas 20 a 30 tratam as cíclicas.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <bitset>
+using namespace std;
+
+int main() {
+    int n, m, i, k, t_ini, t_fim, t_interv;
+    bitset<1000001> min_ocups;
+    
+    while (cin >> n >> m and (n > 0 or m > 0)) {
+        bool conflitou = false;
+        for (i = 0; !conflitou and i < n; ++i) {
+            cin >> t_ini >> t_fim;
+            while (t_ini < t_fim and !conflitou) {
+                if(min_ocups[t_ini]) conflitou = true;
+                else min_ocups.set(t_ini++);
+            }
+        }
+        for (; i < n; ++i) cin >> t_ini >> t_fim;
+        
+        for (i = 0; i < m and !conflitou; ++i) {
+            cin >> t_ini >> t_fim >> t_interv;
+            for (int j = 0; !conflitou and (t_ini + j) < 1000001; j += t_interv) {
+                k = t_ini + j;
+                while (!conflitou and k < (t_fim + j) and k < 1000001) {
+                    if (min_ocups[k]) conflitou = true;
+                    else min_ocups.set(k++);
+                }
+            }
+        }
+        for (; i < m; ++i) cin >> t_ini >> t_fim >> t_interv;
+        
+        cout << (conflitou ? "CONFLICT\n" : "NO CONFLICT\n");
+        min_ocups.reset();
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#11926 – Multitasking}}
+\end{listing}
+
+\subsection{Lista encadeada}
+\subsubsection{\# 11988 – Broken Keyboard (a.k.a. Beiju Text)}
+A solução proposta tem como base principal, a manipulação do elemento iterador da lista encadeada. Itera-se sob cada letra do texto de entrada [linha 17], se o caractere for um indicador da tecla \textit{home} [linha 18], então o iterador passa a apontar para o início da lista; senão, se o caractere for um indicador da tecla \textit{end} [linha 19], então, o iterador deve apontar para o fim da lista; senão, é um caractere não-marcador e deve ser inserido na posição em que o iterador está apontando [linha 20].
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <list>
+
+#define MAX_N_CHAR_LIN 100500
+
+using namespace std;
+
+int main() {
+    list<char> lista_char;
+    string linha_str;
+
+    linha_str.reserve(MAX_N_CHAR_LIN);
+
+    while (getline(cin, linha_str) and !linha_str.empty()) {
+        auto it = lista_char.begin();
+
+        for (char letra: linha_str) {
+            if (letra == '[') it = lista_char.begin();
+            else if (letra == ']') it = lista_char.end();
+            else lista_char.insert(it, letra);
+        }
+
+        for (char letra: lista_char) cout << letra;
+        cout << endl;
+        lista_char.clear();
+    }
+
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#11988 – Broken Keyboard. . .}}
+\end{listing}
+
+\subsection{Pilhas}
+\subsubsection{\#00514 – Rails}
+Esta solução tenta replicar o comportamento da estação de carros com uma pilha. Enquanto houverem carros a serem lidos e o carro que acabou de ser lido for diferente da quantidade de carros já empilhados [linha 24]; se o topo da pilha for o carro atual [linha 25], desempilhe-o [linha 28], senão, empilhe o número de carros já empilhados e incremente a quantidade [linha 26].
+
+Dessa forma, após processar todos carros, se a pilha estiver vazia, então é possível mover os carros entre as estações na ordem de entrada, senão, não é possível [linha 30].
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <stack>
+
+using namespace std;
+
+int main() {
+    stack<int> pilha_carros;
+    int n_carros, carro, cont_carro, linha_vazia;
+    cin >> n_carros;
+
+    while (n_carros > 0) {
+        linha_vazia = cont_carro = 0;
+        pilha_carros = stack<int>();
+
+        for (int i = 0; i < n_carros; ++i) {
+            cin >> carro;
+
+            if (carro == 0) {
+                cin >> n_carros; cout << endl;
+                linha_vazia = 1;
+                break;
+            }
+
+            while (cont_carro < n_carros && cont_carro != carro) {
+                if (!pilha_carros.empty() && pilha_carros.top() == carro) break;
+                pilha_carros.push(++cont_carro);
+            }
+            if (pilha_carros.top() == carro) pilha_carros.pop();
+        }
+        if (!linha_vazia) cout << (pilha_carros.empty() ? "Yes\n" : "No\n");
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#00514 – Rails}}
+\end{listing}
+
+\subsubsection{\#01062 – Containers}
+Para este problema, uma função complementar foi criada para decidir em qual das pilhas de caracteres já existente é mais adequada para receber o caractere lido.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <vector>
+#include <stack>
+
+#define MAX_N 1000
+
+using namespace std;
+
+int indice_pilha_satisf(vector<stack<char>> *pilhas, char letra) {
+
+    int ind_menor = INT32_MAX;
+    char char_topo;
+    char menor_char = 'Z';
+
+    for (int i = 0; i < pilhas->size(); ++i) {
+        char_topo = ((*pilhas)[i]).top();
+
+        if (letra <= char_topo and char_topo <= menor_char) {
+            menor_char = char_topo;
+            ind_menor = i;
+        }
+    }
+
+    return ind_menor;
+}
+\end{minted}
+\caption{\footnotesize{Função complementar \#01062 – Containers}}
+\end{listing}
+
+A ideia principal para solução é, percorrer cada caractere do texto de entrada [linha 11], verificar se existe alguma pilha apta a receber o caractere atual [linhas 12 e 14] e se existir múltiplas, verificar qual delas tem no topo um caractere mais próximo lexicograficamente do caractere que será empilhado (papel da função complementar).
+
+Se a lista de pilhas estiver vazia ou não houver pilhas que possam receber o caractere atual [linhas 14 a 17], uma nova pilha deve ser criada e adicionada na lista de pilhas existentes.
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+int main() {
+    string linha;
+    vector<stack<char>> pilhas;
+    int indice_pil_adeq;
+    int n_caso = 0;
+
+    linha.reserve(MAX_N);
+
+    while (getline(cin, linha) and linha != "end") {
+
+        for (char letra : linha) {
+            indice_pil_adeq = indice_pilha_satisf(&pilhas, letra);
+
+            if (indice_pil_adeq == INT32_MAX) {
+                stack<char> nova_pilha;
+                nova_pilha.push(letra);
+                pilhas.push_back(nova_pilha);
+            } else {
+                pilhas[indice_pil_adeq].push(letra);
+            }
+        }
+
+        printf("Case %d: %d\n", ++n_caso, pilhas.size());
+        pilhas.clear();
+    }
+
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Função principal \#01062 – Containers}}
+\end{listing}
+
+\subsection{Filas}
+\subsubsection{\#10172 – The Lonesome Cargo}
+Neste problema, foi utilizado duas estruturas diferentes para gerenciar o transporte e a estação. Para controle das cargas, foi utilizado uma fila que insere todas as cargas e qual o destino de cada uma delas. Para controle do transporte foi utilizado a pilha, onde a medida que o transporte passa pelas estações, o transporte retira a carga, caso a carga seja daquela estação, lembrando que pra cada estação o transporte leva 1 min para retirar a carga e 2 min de viagem de uma estação para outra. E finalmente quando ele não encontra mais vargas nas estações e o transporte está vazio (clear &= filaEstacao[i].empty()) o caso atual é encerrado e começa o próximo caso.
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <stack>
+#include <queue>
+
+using namespace std;
+
+int main() {
+    int n, s, q, casos, target, ncargas;
+    cin >> casos;
+    
+    for (; casos > 0; casos--){
+        stack<int> transportadora;
+        queue<int> filaEstacao[100];
+        cin >> n >> s >> q;
+        for (int i = 0; i < n; i++) {
+            cin >> ncargas;
+            for (int j = 0; j < ncargas; j++) {
+                cin >> target;
+                filaEstacao[i].push(target - 1);
+            }
+        }
+        int pos = 0, tempo = 0;
+        while (true) {
+            while (!transportadora.empty() && (transportadora.top() == pos 
+                    || filaEstacao[pos].size() < q)) {
+                if (transportadora.top() != pos) {
+                    filaEstacao[pos].push(transportadora.top());
+                }
+                transportadora.pop();
+                tempo++;
+            }
+            while ((transportadora.size() < s) && !filaEstacao[pos].empty()){
+                transportadora.push(filaEstacao[pos].front());
+                filaEstacao[pos].pop();
+                tempo++;
+            }
+            bool clear = transportadora.empty();
+            for (int i = 0; i < n; i++) clear &= filaEstacao[i].empty();
+            
+            if (clear) break;
+            pos = (pos + 1) % n;
+            tempo += 2;
+        }
+        cout << tempo << endl;
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#10172 – The Lonesome Cargo}}
+\end{listing}
+
+\subsubsection{\#10901 – Ferry Loading III}
+A ideia inicial do problema foi utilizar um vetor de duas posições, contendo as duas filas, uma para o lado esquerdo e outra para o lado direito, após isso são adicionados os carros em sua fila determinada com base no seu lado. O core da solução consiste no loop que vai rodar enquanto as duas filas ainda não estiverem vazias, é verificado o carro com o menor tempo de chegada para calcular o tempoAtual, é feito outro loop dentro do primeiro para verificar se existem carros do mesmo lado com o tempo de chegada menor ou igual que o tempoAtual para levar na mesma “viagem”(Tirar da fila carros do mesmo lado antes de trocar de lado), verificando também se a quantidade de carros é menor que a quantidade máxima informada no início. Após isso o tempoAtual é atualizado e o lado é alterado. No final é feito mais um loop para imprimir as saídas.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <string>
+#include <queue>
+#include <algorithm>
+#define MAXN 10004
+
+using namespace std;
+
+int tempoChegada[MAXN], tempoSaida[MAXN];
+queue<int> fila[2];
+
+int main(){
+    int c, k, n, t, m;
+    string lado;
+    cin >> c;
+    while ( c-- ){
+        cin >> n >> t >> m;
+        for (int i=0; i<m; i++){
+            cin >> k >> lado;
+            tempoChegada[i] = k;
+            if (lado == "left") fila[0].push(i);
+            else fila[1].push(i);
+        }
+        int tempoAtual = 0;
+        int ladoAtual = 0;
+        while (!fila[0].empty() || !fila[1].empty()){
+            int proximo = fila[0].empty() ? tempoChegada[fila[1].front()] :
+                       fila[1].empty() ? tempoChegada[fila[0].front()] :
+                       min(tempoChegada[fila[0].front()], tempoChegada[fila[1].front()]);
+            tempoAtual = max(tempoAtual, proximo);
+            int cnt = 0;
+            while (!fila[ladoAtual].empty() &&
+                tempoChegada[fila[ladoAtual].front()] <= tempoAtual && cnt < n) {
+                tempoSaida[fila[ladoAtual].front()] = tempoAtual + t;
+                cnt++;
+                fila[ladoAtual].pop();
+            }
+            tempoAtual += t;
+            ladoAtual = ladoAtual == 0? ladoAtual = 1: ladoAtual = 0;
+        }
+        for (int i=0; i<m; i++) cout << tempoSaida[ i ] << endl;
+        if (c) cout << endl;
+    }   
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#10901 – Ferry Loading III}}
+\end{listing}
+
+\subsection{Árvore binária}
+\subsubsection{\#00939 – Genes}
+Por se tratar de um problema com diversas condições, sua solução foi divida em duas funções complementares, uma função principal e uma estrutura de dados personalizada (\textbf{struct pessoa}).
+
+Como a recessividade do gene depende dos genes dos pais e todas possibilidades são conhecidas, a função abaixo é responsável por preencher uma variável do tipo chave-valor com as variações. A variável tem como chave um par de caracteres que indicam a recessividade dos pais, e seu valor é o resultado da recessividade do gene resultante.
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <algorithm>
+#include <iostream>
+#include <map>
+#include <vector>
+#define STR_DOM "dominant"
+#define STR_REC "recessive"
+#define STR_NON "non-existent"
+
+using namespace std;
+
+typedef struct pessoa { string nome, pai_1, pai_2, gene; } t_pess;
+
+map<string, t_pess> map_p_c_gen, map_filhos;
+map<pair<char, char>, string> gene_comb;
+
+void gerar_combinacoes() {
+    gene_comb[make_pair('d', 'd')] = STR_DOM;
+    gene_comb[make_pair('d', 'r')] = STR_DOM;
+    gene_comb[make_pair('r', 'd')] = STR_DOM;
+    gene_comb[make_pair('d', 'n')] = STR_REC;
+    gene_comb[make_pair('r', 'r')] = STR_REC;
+    gene_comb[make_pair('r', 'n')] = STR_NON;
+    gene_comb[make_pair('n', 'n')] = STR_NON;
+    gene_comb[make_pair('n', 'r')] = STR_NON;
+    gene_comb[make_pair('n', 'd')] = STR_REC;
+}
+\end{minted}
+\caption{\footnotesize{Função - Gerar todas combinações - \#00939 – Genes}}
+\end{listing}
+
+Outro ponto chave para resolução do exercício é sua natureza recursiva, todo filho além de depender dos pais para definir a recessividade do seu gene, também pode ser pai de outros indivíduos. Além de que, toda vez que uma recessividade é definida, pode ser que há outros indivíduos que dependam dessa informação para definir a sua também. A função \textbf{buscar\_pais} é responsável por preencher a recessividade de uma pessoa e a de seus pais, se essas informações estiverem vazias.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+void buscar_pais(const t_pess pessoa) {
+    if (map_p_c_gen.find(pessoa.pai_1) == map_p_c_gen.end()) {
+        buscar_pais(map_filhos[pessoa.pai_1]);
+    }
+    if (map_p_c_gen.find(pessoa.pai_2) == map_p_c_gen.end()) {
+        buscar_pais(map_filhos[pessoa.pai_2]);
+    }
+    map_p_c_gen[pessoa.nome].gene = gene_comb[make_pair(
+        map_p_c_gen[pessoa.pai_1].gene[0], map_p_c_gen[pessoa.pai_2].gene[0])];
+}
+
+int main() {
+    int n_testes;
+    string nome_genitor, gene_filho;
+    cin >> n_testes;
+
+    while (n_testes--) {
+        cin >> nome_genitor >> gene_filho;
+
+        if (gene_filho == STR_NON || gene_filho == STR_REC || gene_filho == STR_DOM) {
+            t_pess pessoa;
+            pessoa.nome = nome_genitor;
+            pessoa.gene = gene_filho;
+            map_p_c_gen[nome_genitor] = pessoa;
+        }
+        else if (map_filhos.find(gene_filho) == map_filhos.end()) {
+            t_pess pessoa;
+            pessoa.nome = gene_filho;
+            pessoa.pai_1 = nome_genitor;
+            map_filhos[gene_filho] = pessoa;
+        }
+        else map_filhos[gene_filho].pai_2 = nome_genitor;
+    }
+    gerar_combinacoes();
+
+    for (auto par: map_filhos) buscar_pais(par.second);
+
+    for (const auto &par: map_p_c_gen) {
+        cout << par.first << ' ' << map_p_c_gen[par.first].gene << endl;
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#00939 – Genes}}
+\end{listing}
+
+\subsubsection{\#10132 – File Fragmentation}
+Para solução desse exercício, a permutação das cadeias de bits de entrada é crucial. A solução resume-se em gerar todas permutações e selecionar a de maior frequência dentre todas possíveis.
+
+A função abaixo, \textbf{gerar\_combinacoes}, é responsável por gerar a permutação com pares de cadeias de bits de entrada e armazenar essa combinação como chave e sua frequência como valor de uma variável chave-valor. O retorno da função é uma lista de pares contendo a frequência da combinação e a string com a permutação em si, respectivamente.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <map>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+vector<string> frag_bits;
+
+vector<pair<int, string>> gerar_combinacoes() {
+    const int tam = frag_bits.size();
+    map<string, int> comb_freq;
+    vector<pair<int, string>> freq_comb;
+
+    for (int i = 0; i < tam; ++i) {
+        for (int j = i + 1; j < tam; ++j) {
+            ++comb_freq[frag_bits[i] + frag_bits[j]];
+            ++comb_freq[frag_bits[j] + frag_bits[i]];
+        }
+    }
+
+    freq_comb.reserve(comb_freq.size());
+
+    for(auto comb_cont: comb_freq) {
+        freq_comb.emplace_back(comb_cont.second, comb_cont.first);
+    }
+    return freq_comb;
+}
+\end{minted}
+\caption{\footnotesize{Função complementar \#10132 – File Fragmentation}}
+\end{listing}
+
+Na função principal, após gerar as combinações, a lista de pares é ordenada crescentemente pela frequência das permutações. A última combinação, que apareceu mais vezes, é impressa.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+int main() {
+
+    int n_testes;
+    string bits;
+
+    cin >> n_testes >> bits;
+    cin.ignore();
+
+    while (n_testes--) {
+        while (!bits.empty()) {
+            frag_bits.push_back(bits);
+            getline(cin, bits);
+        }
+
+        vector<pair<int, string>> comb_cont = gerar_combinacoes();
+        sort(comb_cont.begin(), comb_cont.end());
+
+        cout << comb_cont[comb_cont.size() - 1].second << endl;
+        frag_bits.clear();
+        getline(cin, bits);
+
+        if (!bits.empty()) cout << endl;
+    }
+
+    return 0;
+}
+
+\end{minted}
+\caption{\footnotesize{Função principal \#10132 – File Fragmentation}}
+\end{listing}
+
+\subsection{Conjuntos}
+\subsubsection{\#00978 – Lemmings Battle}
+A solução deste exercício gira em torno de detalhes como enfileirar os soldados sobreviventes do grupo azul e do grupo verde. Após realizar a leitura dos dados (linhas 13 a 19), define-se o número máximo de batalhas possíveis considerando o número de campos de batalha e a quantidade de soldados em cada grupo (linhas 21 e 22).
+
+Como a estrutura de dados \textbf{multiset} mantém os dados ordenados crescentemente, para batalhar com os guerreiros mais fortes bastou-se escolher o último soldado de cada grupo [linhas 24 e 25]. Se algum sobreviver, inseri-lo na lista de sobreviventes.
+
+Quando a rodada de batalhas finalizar, os sobreviventes retornam ao grupo de guerreiros na ativa e a lista de sobreviventes é limpa [linhas 30 a 32].
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <set>
+#include <vector>
+using namespace std;
+
+int main() {
+    multiset<int> g_verde, g_azul;
+    vector<int> sobrev_verdes, sobrev_azuis;
+    int n_testes, temp_forca, n_campos, n_verde, n_azul, min_qtd_grupo, n_batalhas;
+    cin >> n_testes;
+
+    while (n_testes--) {
+        cin >> n_campos >> n_verde >> n_azul;
+        for (int i = 0; i < n_verde; ++i) {
+            cin >> temp_forca; g_verde.insert(temp_forca);
+        }
+        for (int i = 0; i < n_azul; ++i) {
+            cin >> temp_forca; g_azul.insert(temp_forca);
+        }
+        while (!g_verde.empty() and !g_azul.empty()) {
+            min_qtd_grupo = (int) min(g_verde.size(), g_azul.size());
+            n_batalhas = min(min_qtd_grupo, n_campos);
+            for (int i = 0; i < n_batalhas; ++i) {
+                int verde = *(--g_verde.end());
+                int azul = *(--g_azul.end());
+                g_azul.erase(--g_azul.end()); g_verde.erase(--g_verde.end());
+                if (verde > azul) sobrev_verdes.push_back(verde - azul);
+                else if (verde < azul) sobrev_azuis.push_back(azul - verde);
+            }
+            for(auto verde: sobrev_verdes) g_verde.insert(verde);
+            for(auto azul: sobrev_azuis) g_azul.insert(azul);
+            sobrev_verdes.clear(); sobrev_azuis.clear();
+        }
+        if (g_verde.empty() and g_azul.empty()) cout << "green and blue died\n";
+        else {
+            auto g_vencedor = !g_verde.empty() ? g_verde : g_azul;
+            cout << (g_vencedor == g_verde ? "green wins\n" : "blue wins\n");
+            while(!g_vencedor.empty()) {
+                cout << *(--g_vencedor.end()) << endl;
+                g_vencedor.erase(--g_vencedor.end());
+            }
+        }
+        g_verde.clear(); g_azul.clear();
+        if (n_testes) cout << endl;
+    }
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#00978 – Lemmings Battle}}
+\end{listing}
+
+\subsubsection{\#11849 – CD}
+Se considerarmos que Jack possui N discos e Jill possui M, e que o total de discos de ambos seja K, tendo em vista que a estrutura \textbf{set} não admite repetição de valores, após armazenar todos discos de Jill e Jack em um mesmo set, todas repetições serão ignoradas, logo o número de discos em comum será a diferença entre K (total de disco de ambos) e o quantidade de elementos no set.
+
+\begin{listing}[H]
+\begin{minted}[linenos,fontsize=\small]{cpp}
+#include <iostream>
+#include <set>
+
+using namespace std;
+
+int main() {
+    set<int> cd_numeros;
+    int n_jack, n_jill, soma_jj, temp_num;
+
+    while (cin >> n_jack >> n_jill and (n_jack + n_jill) > 0) {
+        soma_jj = n_jack + n_jill;
+
+        for (int i = 0; i < soma_jj; ++i) {
+            cin >> temp_num;
+            cd_numeros.insert(temp_num);
+        }
+        cout << soma_jj - cd_numeros.size() << endl;
+        cd_numeros.clear();
+    }
+
+    return 0;
+}
+\end{minted}
+\caption{\footnotesize{Solução do problema \#11849 – CD}}
+\end{listing}
+
+\end{document}
+
+% Local Variables:
+% ispell-local-dictionary: "brasileiro"
+% TeX-master: t
+% TeX-command-extra-options: "-shell-escape"
+% End:
